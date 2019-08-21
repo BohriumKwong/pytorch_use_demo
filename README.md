@@ -1,4 +1,4 @@
-# 基于tqdm动态显示pytorch训练/预测中bacth信息的代码演示说明
+# 基于tqdm动态显示pytorch训练/预测中batch信息的代码演示说明
 
 ##  Installation
 
@@ -9,7 +9,7 @@
 ## Run
 
 ```
-python main.py 
+python main.py
 ```
 具体可参看train_demo.ipynb和test_demo.ipynb。主要使用方法如下：
 ### 训练(from directory)
