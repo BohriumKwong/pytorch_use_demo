@@ -53,11 +53,12 @@ class Test_epoch_from_array:
                     image_tensor = Variable(torch.from_numpy(self.input_array[top:bottom,:,:,:].copy().transpose((0,3, 1, 2))).float().div(255).cuda())
                     output =  self.model(image_tensor) 
                     output_predict_batch = F.softmax(output)
+                    output_predict_batch = output_predict_batch.cuda().data.cpu().numpy()
                     if i ==0 :
                         output_predict = output_predict_batch.copy()
                     else:
                         output_predict = np.row_stack((output_predict,output_predict_batch.copy()))
-                    del image_tensor,output_predict_batch,out
+                    del image_tensor,output_predict_batch,output
                     gc.collect()
         return output_predict
     
