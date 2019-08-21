@@ -46,7 +46,7 @@ def  batch_mil_sampling(imagelist,region_result_npy,mil_data_save_dir,class_name
 #    images_torch = Variable(torch.from_numpy(images.copy().transpose((0,3, 1, 2))).float().div(255).cuda())
     model_ft.eval() 
     with torch.no_grad():
-        test_epoch = test.Test_epoch(model_ft,images,128)
+        test_epoch = test.Test_epoch_from_array(model_ft,images,256)
         output_predict = test_epoch.predict()
     output_order = np.argsort(output_predict[:,class_dict[class_name]])[::-1]
     if class_dict[class_name] ==0:
@@ -72,7 +72,7 @@ def  batch_mil_sampling(imagelist,region_result_npy,mil_data_save_dir,class_name
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")        
-    batch_size = 128
+    batch_size = 256
     data_dir_ori = {'train':'/cptjack/totem_disk/totem/M_MSI_MSS/normal/train',
                 'val':'/cptjack/totem_disk/totem/M_MSI_MSS/normal/val'}
     
@@ -170,12 +170,17 @@ if __name__ == '__main__':
     np.save('all_val_loss.npy', all_val_loss)
     
     
-    plt.plot(all_train_acc,c = 'red',label = 'train_acc')
-    plt.plot(all_val_acc,c = 'blue',label = 'val_acc')
-    plt.legend()
+    plt.figure()
+    plt.style.use('bmh') # bmh
+    plt.title("training acc and loss: ", fontsize=18)
+    train_acc, = plt.plot(all_train_acc,c = 'g',linewidth=3)
+    val_acc, = plt.plot(all_val_acc,c = 'b',linewidth=3)
+    train_loss, = plt.plot(all_train_loss,c = 'y',linewidth=3)
+    val_loss, = plt.plot(all_val_loss,c = 'r',linewidth=3)
+    plt.xlabel("Epoch", fontsize=14)
+    plt.ylabel('acc-loss')
+    plt.tick_params(axis='both', labelsize=14)
+    plt.legend(handles=[train_acc, val_acc,train_loss,val_loss], labels=['train_acc', 'val_acc','train_loss','val_loss'],
+        loc='center right') 
     plt.show()
-    
-    plt.plot(all_train_loss,c = 'red',label = 'train_loss')
-    plt.plot(all_val_loss,c = 'blue',label = 'val_loss')
-    plt.legend()
-    plt.show()
+    plt.close()
