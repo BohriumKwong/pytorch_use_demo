@@ -1,5 +1,4 @@
 # 基于tqdm动态显示pytorch训练/预测中bacth信息的代码演示说明
-本
 
 ##  Installation
 
