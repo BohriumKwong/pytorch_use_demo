@@ -43,6 +43,7 @@ class Test_epoch_from_array:
             image_tensor = Variable(torch.from_numpy(self.input_array.copy().transpose((0,3, 1, 2))).float().div(255).cuda())
             output =  self.model(image_tensor) 
             output_predict = F.softmax(output)
+            output_predict = output_predict.cuda().data.cpu().numpy()
         else:
             batch_count = self.input_array.shape[0]// self.batch_size
 #            with tqdm(dataloaders[phase], desc = phase, file=sys.stdout, disable=not (self.verbose)) as iterator: 
