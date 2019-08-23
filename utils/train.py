@@ -224,7 +224,6 @@ class Epoch:
                         best_model_wts = copy.deepcopy(self.model).state_dict()
                         torch.save(best_model_wts, os.path.join(self.model_save_path,self.model_base_name + \
                                                                 time.strftime('_%Y_%m_%d_.pth',time.localtime(time.time()))))
-                        early_stop_flag = 0
                         del best_model_wts
                         gc.collect()
                         early_stop_flag = 0
@@ -232,9 +231,9 @@ class Epoch:
                         early_stop_flag = early_stop_flag + 1   
                         # Let early_stop_flag itself adds by 1, which is used by early_stopping 
                     print()
-            elif not stop_print:
-                print("Epoch early stop: {}/{}".format(early_stop_flag,epoch))
-                stop_print = True
+                if ~stop_print:
+                    print("Epoch early stop: {}/{}".format(epoch,num_epochs -1))
+                    stop_print = True
 
 
                 
