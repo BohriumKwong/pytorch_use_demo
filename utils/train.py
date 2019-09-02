@@ -231,7 +231,7 @@ class Epoch:
                         early_stop_flag = early_stop_flag + 1   
                         # Let early_stop_flag itself adds by 1, which is used by early_stopping 
                     print()
-                if ~stop_print:
+                if not stop_print:
                     print("Epoch early stop: {}/{}".format(epoch,num_epochs -1))
                     stop_print = True
 
