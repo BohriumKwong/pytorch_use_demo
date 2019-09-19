@@ -1,0 +1,12 @@
+.idea/*
+*.pyc
+.DS_Store
+venv/*
+*.ini
+*.h5
+*.png
+test*
+*.log
+*pth
+*out
+*csv
