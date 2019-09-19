@@ -31,16 +31,22 @@ class Test_epoch_from_array:
     :param batch_size: the value of batch_size in model's predicting
     :param verbose: show the information of tdqm method with dataloaders in processing or not
     """      
-    def __init__(self, model, input_array,batch_size=256,verbose=False):      
+    def __init__(self, model, input_array,batch_size=256,mean = [0,0,0], std = [1,1,1],verbose=False):      
         self.model = model
         self.input_array = input_array
         self.batch_size = batch_size
+        self.mean = mean
+        self.std = std
         self.verbose = verbose  
         
         
     def predict(self): 
+        self.input_array /= 255
+        for i in range(3):
+            self.input_array[:,:,:,i] -= self.mean[i]
+            self.input_array[:,:,:,i] /= self.std[i]
         if self.input_array.shape[0] <= self.batch_size :
-            image_tensor = Variable(torch.from_numpy(self.input_array.copy().transpose((0,3, 1, 2))).float().div(255).cuda())
+            image_tensor = Variable(torch.from_numpy(self.input_array.copy().transpose((0,3, 1, 2))).float().cuda())
             output =  self.model(image_tensor) 
             output_predict = F.softmax(output)
             output_predict = output_predict.cuda().data.cpu().numpy()
@@ -51,7 +57,7 @@ class Test_epoch_from_array:
                 top = i * self.batch_size
                 bottom = min(self.input_array.shape[0], (i+1) * self.batch_size)
                 if top < self.input_array.shape[0]:
-                    image_tensor = Variable(torch.from_numpy(self.input_array[top:bottom,:,:,:].copy().transpose((0,3, 1, 2))).float().div(255).cuda())
+                    image_tensor = Variable(torch.from_numpy(self.input_array[top:bottom,:,:,:].copy().transpose((0,3, 1, 2))).float().cuda())
                     output =  self.model(image_tensor) 
                     output_predict_batch = F.softmax(output)
                     output_predict_batch = output_predict_batch.cuda().data.cpu().numpy()
@@ -73,16 +79,18 @@ class Test_epoch_from_folder:
     :param verbose: show the information of tdqm method with dataloaders in processing or not
     :param if_plot: plot the confusion_matrix of the result of summarize
     """ 
-    def __init__(self, model, folder_path,batch_size,verbose=True,if_plot = True):  
+    def __init__(self, model, folder_path,batch_size,mean = [0,0,0], std = [1,1,1],verbose=True,if_plot = True):  
        self.model = model
        self.folder_path = folder_path
        self.batch_size = batch_size
+       self.mean = mean
+       self.std = std
        self.verbose = verbose
        self.if_plot = if_plot
 
 
     def get_dataloader(self):
-        data_transforms = transforms.Compose([ transforms.ToTensor()])
+        data_transforms = transforms.Compose([ transforms.ToTensor(),transforms.Normalize(self.mean,self.std)])
     
         image_datasets = datasets.ImageFolder(self.folder_path,data_transforms)
         

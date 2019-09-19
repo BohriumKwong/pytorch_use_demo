@@ -21,6 +21,8 @@ from sklearn.metrics import balanced_accuracy_score,recall_score
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
+
 class Epoch:
     r"""
     :param model: a model that loaded with pytorch and trans .to(device)
@@ -29,16 +31,19 @@ class Epoch:
     :param model_save_path: the path of saving trained model 
     :param model_base_name: the base name that used in saving trained model
     :param batch_size: the value of batch_size in training model
-    :param verbose: show the information of tdqm method with dataloaders in processing or not 
+    :param Normalize_param : mean ,std (sequence): Sequence of means and standard deviations for each channel;
+    :param verbose: bool variable,default True;show the information of tdqm method with dataloaders in processing or not 
     """  
     
-    def __init__(self, model, datapath, mil_round,model_save_path,model_base_name,batch_size,verbose=True):      
+    def __init__(self, model, datapath, mil_round,model_save_path,model_base_name,batch_size, mean = [0,0,0], std = [1,1,1],verbose=True):      
         self.model = model
         self.datapath = datapath
         self.mil_round = mil_round
         self.model_save_path = model_save_path
         self.model_base_name = model_base_name
         self.batch_size = batch_size
+        self.mean = mean
+        self.std = std
         self.verbose = verbose       
 
 
@@ -46,9 +51,10 @@ class Epoch:
         data_transforms = {
         'train':transforms.Compose([
                 transforms.RandomHorizontalFlip(),
-                transforms.ToTensor()
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean,self.std)
                 ]),
-        'val':transforms.Compose([ transforms.ToTensor()
+        'val':transforms.Compose([ transforms.ToTensor(),transforms.Normalize(self.mean,self.std)
         ]),}
     
         image_datasets = {x: datasets.ImageFolder(self.datapath[x],
