@@ -169,7 +169,7 @@ class Test_epoch_from_folder:
             plt.show()
 
         time_elapsed = time.time() - time_start
-        print('training complete in {:.0f}m {:.0f}s'.format(time_elapsed //60, time_elapsed %60))
+        print('testing complete in {:.0f}m {:.0f}s'.format(time_elapsed //60, time_elapsed %60))
         
         return result            
                 

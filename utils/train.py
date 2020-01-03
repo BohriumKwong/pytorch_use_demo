@@ -9,6 +9,7 @@ from __future__ import print_function, division
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim import lr_scheduler
 import copy
 import numpy as np
 from tqdm import tqdm as tqdm
@@ -50,11 +51,14 @@ class Epoch:
     def get_dataloader(self):
         data_transforms = {
         'train':transforms.Compose([
+                transforms.ColorJitter(hue=0.2),
+                transforms.Resize((224,224)),
                 transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean,self.std)
                 ]),
-        'val':transforms.Compose([ transforms.ToTensor(),transforms.Normalize(self.mean,self.std)
+        'val':transforms.Compose([ transforms.Resize((224,224)),transforms.ToTensor(),transforms.Normalize(self.mean,self.std)
         ]),}
     
         image_datasets = {x: datasets.ImageFolder(self.datapath[x],
@@ -145,11 +149,12 @@ class Epoch:
             
         return self.model,train_loss,train_acc,val_loss,val_acc
         
-    def run(self,num_epochs=30,early_patience=5):       
+    def run(self,num_epochs=30,early_patience=5,save_all = False):
         dataloaders,weight_bias = self.get_dataloader()    
         loss_function  = nn.CrossEntropyLoss(weight=torch.from_numpy(weight_bias).float().to(device))
-        optimizer = optim.Adam(self.model.parameters(),
-                            lr=0.000001, weight_decay=0.0001)
+        optimizer =  optim.SGD(self.model.parameters(), lr=0.0001,momentum = 0.9,weight_decay =0.001)
+        exp_lr_scheduler = lr_scheduler.StepLR(optimizer,step_size = 7,gamma = 0.1)
+
         train_loss = []
         val_loss = []
     
@@ -170,7 +175,7 @@ class Epoch:
                 print('-'*10)
                 for phase in ['train', 'val']:
                     if phase=='train':
-                        #scheduler.step()
+                        exp_lr_scheduler.step()
                         self.model.train()
                     else:
                         self.model.eval()
@@ -224,7 +229,7 @@ class Epoch:
 
                     if phase == 'val' and epoch_acc > best_acc:
                         best_acc = copy.deepcopy(epoch_acc)
-                    elif phase == 'val' and epoch > 0  and epoch_loss < min_loss:
+                    if phase == 'val' and epoch > 0  and epoch_loss < min_loss:
                         min_loss = copy.deepcopy(epoch_loss)
                         #deep copy the model & min_loss and saved the best model
                         best_model_wts = copy.deepcopy(self.model).state_dict()
@@ -234,7 +239,10 @@ class Epoch:
                         gc.collect()
                         early_stop_flag = 0
                     elif phase == 'val' and epoch > 0 and epoch_loss > min_loss:
-                        early_stop_flag = early_stop_flag + 1   
+                        early_stop_flag = early_stop_flag + 1
+                    if phase == 'val' and save_all:
+                        torch.save(copy.deepcopy(self.model).state_dict(), os.path.join(self.model_save_path,self.model_base_name + \
+                                        '_epoch_' + str(epoch) + '.pth'))
                         # Let early_stop_flag itself adds by 1, which is used by early_stopping 
                     print()
                 if not stop_print:
